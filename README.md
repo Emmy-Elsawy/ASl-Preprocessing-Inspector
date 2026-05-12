@@ -19,7 +19,7 @@ This project implements a full image preprocessing pipeline for the [Sign Langua
 
 ## Screenshots
 
-> **Pipeline Tab** — 10 preprocessing steps shown side-by-side for any selected letter or random sample.  
+> **Pipeline Tab** — 10 preprocessing steps shown side-by-side for any selected letter or random sample![Pipeline Tab](assets/11.png)  
 > **Analysis Tab** — Histogram comparison, intensity profile, edge magnitude distribution, and contrast std-dev chart.  
 > **Live Camera** — Real-time 10-step pipeline applied to webcam frames with per-step histograms.
 
