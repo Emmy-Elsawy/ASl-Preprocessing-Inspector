@@ -16,13 +16,6 @@ This project implements a full image preprocessing pipeline for the [Sign Langua
 
 ---
 
-## Screenshots
-
-> **Pipeline Tab** — 10 preprocessing steps shown side-by-side for any selected letter or random sample.  
-> **Analysis Tab** — Histogram comparison, intensity profile, edge magnitude distribution, and contrast std-dev chart.
-
----
-
 ## Features
 
 - 🔤 **Letter selector grid** — click any ASL letter (A–Y) to jump to a sample of that class
