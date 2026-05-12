@@ -6,7 +6,8 @@
 # ║  Outputs: X_train_preprocessed.npy, y_train.npy,                           ║
 # ║            X_test_preprocessed.npy,  y_test.npy                            ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
-
+import matplotlib
+matplotlib.use('Agg')  # Force matplotlib to use a non-interactive backend
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
@@ -17,8 +18,8 @@ from skimage import io, filters, transform, data
 # ──────────────────────────────────────────────────────────────────────────────
 # PATHS — adjust to your Kaggle / local dataset location
 # ──────────────────────────────────────────────────────────────────────────────
-TRAIN_CSV = '/Users/emmyel-sawy/Desktop/Final Image Project/archive/sign_mnist_train.csv'   # ← change if needed
-TEST_CSV  = '/Users/emmyel-sawy/Desktop/Final Image Project/archive/sign_mnist_test.csv'    # ← change if needed
+TRAIN_CSV = '/Users/emmyel-sawy/Desktop/ASL Preprocessing Inspector/sign_mnist_train/sign_mnist_train.csv'   # ← change if needed
+TEST_CSV  = '/Users/emmyel-sawy/Desktop/ASL Preprocessing Inspector/sign_mnist_test/sign_mnist_test.csv'    # ← change if needed
 
 OUTPUT_DIR = '.'                     # where .npy files will be saved
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -138,7 +139,6 @@ def preprocess_single(img: np.ndarray) -> np.ndarray:
     sh  = sharpening_filter(st)
     ed  = np.clip(sobel_edge_detection(sh), 0, 255).astype(np.uint8)
     return ed.astype(np.float32) / 255.0
-
 
 def preprocess_webcam_frame(frame: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """

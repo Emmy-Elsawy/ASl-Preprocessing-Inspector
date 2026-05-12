@@ -1,0 +1,184 @@
+# 🤟 ASL Pipeline Inspector
+
+> **CS.383 — Real-Time Sign Language Translator**  
+> An interactive desktop tool for visualizing and exploring the image preprocessing pipeline used to prepare Sign Language MNIST data for CNN-based ASL recognition.
+
+---
+
+## Overview
+
+This project implements a full image preprocessing pipeline for the [Sign Language MNIST](https://www.kaggle.com/datasets/datamunge/sign-language-mnist) dataset, accompanied by a rich Tkinter GUI that lets you inspect every transformation step in real time. It was built as part of a two-file system:
+
+| File | Purpose |
+|------|---------|
+| `asl_preprocessing.py` | Core pipeline — loads CSVs, applies all transforms, saves `.npy` files |
+| `asl_inspector_ui.py` | Interactive GUI — visualize all 10 steps per sample, histogram & contrast analysis |
+
+---
+
+## Screenshots
+
+> **Pipeline Tab** — 10 preprocessing steps shown side-by-side for any selected letter or random sample.  
+> **Analysis Tab** — Histogram comparison, intensity profile, edge magnitude distribution, and contrast std-dev chart.
+
+---
+
+## Features
+
+- 🔤 **Letter selector grid** — click any ASL letter (A–Y) to jump to a sample of that class
+- 🎲 **Random sample button** — explore the dataset at random
+- 🔬 **10-step pipeline visualizer** — see exactly what each transform does to the image
+- 📊 **Analysis tab** — histogram overlays, row-intensity profiles, Sobel distribution, and contrast comparison
+- ⚡ **Webcam-ready pipeline** — `preprocess_webcam_frame()` is wired for real-time inference
+
+---
+
+## Preprocessing Pipeline
+
+Each image passes through the following steps before being fed to the CNN:
+
+```
+Raw 28×28 uint8
+       │
+       ▼
+1. Histogram Equalization   — normalize uneven lighting across all samples
+       │
+       ▼
+2. Contrast Stretching      — guarantee full 0–255 dynamic range per image
+       │
+       ▼
+3. Sharpening Filter        — crisp finger/hand boundaries at 28×28 resolution
+       │
+       ▼
+4. Sobel Edge Detection     — extract structural hand outline (Gx² + Gy²)
+       │
+       ▼
+5. Normalize to [0.0, 1.0]  — float32 tensor ready for Keras CNN input
+```
+
+The GUI additionally visualizes all intermediate techniques (Gaussian blur, Laplacian, Image Inverse, Gamma Correction, Log Transform) for educational inspection.
+
+---
+
+## Tech Stack
+
+| Library | Use |
+|---------|-----|
+| `numpy` | Array operations, dataset storage |
+| `opencv-python` | Median blur, sharpening, Sobel, colorspace conversion |
+| `scikit-image` | Gaussian blur, Laplacian filter |
+| `matplotlib` | Inline plots, histogram charts |
+| `tkinter` | Desktop GUI (built-in with Python) |
+
+---
+
+## Installation
+
+```bash
+# Clone the repo
+git clone https://github.com/your-username/asl-pipeline-inspector.git
+cd asl-pipeline-inspector
+
+# Install dependencies
+pip install numpy opencv-python scikit-image matplotlib
+```
+
+> `tkinter` ships with Python on Windows and macOS. On Linux: `sudo apt install python3-tk`
+
+---
+
+## Dataset Setup
+
+1. Download the **Sign Language MNIST** dataset from [Kaggle](https://www.kaggle.com/datasets/datamunge/sign-language-mnist)
+2. Place the CSVs on your machine and update the paths at the top of `asl_preprocessing.py`:
+
+```python
+TRAIN_CSV = '/path/to/sign_mnist_train/sign_mnist_train.csv'
+TEST_CSV  = '/path/to/sign_mnist_test/sign_mnist_test.csv'
+```
+
+---
+
+## Usage
+
+### Step 1 — Run the preprocessing pipeline
+
+```bash
+python asl_preprocessing.py
+```
+
+This reads both CSVs, applies the full pipeline, and saves four `.npy` files:
+
+```
+X_train_preprocessed.npy   (N, 28, 28, 1)  float32
+y_train.npy                (N,)             int
+X_test_preprocessed.npy    (M, 28, 28, 1)  float32
+y_test.npy                 (M,)             int
+```
+
+### Step 2 — Launch the Inspector GUI
+
+```bash
+python asl_inspector_ui.py
+```
+
+---
+
+## Loading Preprocessed Data
+
+```python
+import numpy as np
+
+X_train = np.load('X_train_preprocessed.npy')  # (27455, 28, 28, 1)
+y_train = np.load('y_train.npy')               # (27455,)
+X_test  = np.load('X_test_preprocessed.npy')   # (7172, 28, 28, 1)
+y_test  = np.load('y_test.npy')                # (7172,)
+```
+
+---
+
+## Real-Time Webcam Inference
+
+The preprocessing module includes a ready-to-use function for live webcam frames:
+
+```python
+from asl_preprocessing import preprocess_webcam_frame
+
+# frame: BGR numpy array from cv2.VideoCapture
+tensor, preview = preprocess_webcam_frame(frame)
+# tensor  → float32 (1, 28, 28, 1)  — feed directly to model.predict()
+# preview → uint8   (28, 28)         — display on screen with cv2.imshow()
+```
+
+---
+
+## Project Structure
+
+```
+asl-pipeline-inspector/
+├── asl_preprocessing.py      # Pipeline core + .npy export
+├── asl_inspector_ui.py       # Tkinter GUI
+├── sign_mnist_train/
+│   └── sign_mnist_train.csv
+├── sign_mnist_test/
+│   └── sign_mnist_test.csv
+├── X_train_preprocessed.npy  # generated by Step 1
+├── y_train.npy
+├── X_test_preprocessed.npy
+├── y_test.npy
+└── README.md
+```
+
+---
+
+## Notes
+
+- The dataset covers **24 ASL letters** (J and Z are excluded as they require motion)
+- All pixel values are normalized to `[0.0, 1.0]` as `float32` for direct Keras compatibility
+- The Inspector GUI loads the first **1000 samples** for fast startup; change `max_samples` in `asl_inspector_ui.py` to load more
+
+---
+
+## License
+
+This project was developed for academic purposes as part of CS.383.
