@@ -94,7 +94,7 @@ class ASLInspector:
 
         print("Loading dataset...")
         self.X_raw, self.y_raw = load_csv(TRAIN_CSV, max_samples=1000)
-        self.letters = "ABCDEFGHIJKLMNOPQRSTUVWXY"
+        self.letters = "ABCDEFGHIKLMNOPQRSTUVWXY"
         self._current_idx = 0
 
         self._build_ui()

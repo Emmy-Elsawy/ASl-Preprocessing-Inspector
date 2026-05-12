@@ -7,29 +7,38 @@
 
 ## Overview
 
-This project implements a full image preprocessing pipeline for the [Sign Language MNIST](https://www.kaggle.com/datasets/datamunge/sign-language-mnist) dataset, accompanied by a rich Tkinter GUI that lets you inspect every transformation step in real time. It was built as part of a two-file system:
+This project implements a full image preprocessing pipeline for the [Sign Language MNIST](https://www.kaggle.com/datasets/datamunge/sign-language-mnist) dataset, with two interactive GUIs — one for dataset inspection and one for live webcam visualization. It is built as a three-file system:
 
 | File | Purpose |
 |------|---------|
 | `asl_preprocessing.py` | Core pipeline — loads CSVs, applies all transforms, saves `.npy` files |
-| `asl_inspector_ui.py` | Interactive GUI — visualize all 10 steps per sample, histogram & contrast analysis |
+| `asl_inspector_ui.py` | Dataset GUI — visualize all 10 steps per sample, histogram & contrast analysis |
+| `asl_live_camera.py` | Live camera GUI — real-time pipeline visualization from webcam feed |
 
 ---
 
 ## Screenshots
 
 > **Pipeline Tab** — 10 preprocessing steps shown side-by-side for any selected letter or random sample.  
-> **Analysis Tab** — Histogram comparison, intensity profile, edge magnitude distribution, and contrast std-dev chart.
+> **Analysis Tab** — Histogram comparison, intensity profile, edge magnitude distribution, and contrast std-dev chart.  
+> **Live Camera** — Real-time 10-step pipeline applied to webcam frames with per-step histograms.
 
 ---
 
 ## Features
 
+### Dataset Inspector (`asl_inspector_ui.py`)
 - 🔤 **Letter selector grid** — click any ASL letter (A–Y) to jump to a sample of that class
 - 🎲 **Random sample button** — explore the dataset at random
 - 🔬 **10-step pipeline visualizer** — see exactly what each transform does to the image
 - 📊 **Analysis tab** — histogram overlays, row-intensity profiles, Sobel distribution, and contrast comparison
-- ⚡ **Webcam-ready pipeline** — `preprocess_webcam_frame()` is wired for real-time inference
+
+### Live Camera Visualizer (`asl_live_camera.py`)
+- 📷 **Camera selector** — supports built-in, iPhone Continuity, and external USB cameras
+- ▶ **Start / Stop / Pause** — full playback controls
+- ⚡ **Adjustable update speed** — 1–30 fps slider
+- 🃏 **10 live step cards** — each card shows the transformed image thumbnail + a live histogram
+- 📋 **Pipeline legend** — color-coded sidebar showing all 10 stages at a glance
 
 ---
 
@@ -56,7 +65,7 @@ Raw 28×28 uint8
 5. Normalize to [0.0, 1.0]  — float32 tensor ready for Keras CNN input
 ```
 
-The GUI additionally visualizes all intermediate techniques (Gaussian blur, Laplacian, Image Inverse, Gamma Correction, Log Transform) for educational inspection.
+Both GUIs additionally visualize all intermediate techniques: Gaussian Blur, Laplacian, Image Inverse, Gamma Correction (γ=0.45), and Log Transform.
 
 ---
 
@@ -65,10 +74,12 @@ The GUI additionally visualizes all intermediate techniques (Gaussian blur, Lapl
 | Library | Use |
 |---------|-----|
 | `numpy` | Array operations, dataset storage |
-| `opencv-python` | Median blur, sharpening, Sobel, colorspace conversion |
+| `opencv-python` | Webcam capture, median blur, sharpening, Sobel, colorspace conversion |
 | `scikit-image` | Gaussian blur, Laplacian filter |
-| `matplotlib` | Inline plots, histogram charts |
+| `matplotlib` | Inline plots, per-step live histograms |
+| `Pillow` | Converting OpenCV frames to Tkinter-compatible images |
 | `tkinter` | Desktop GUI (built-in with Python) |
+| `threading` | Background camera capture loop (non-blocking UI) |
 
 ---
 
@@ -80,7 +91,7 @@ git clone https://github.com/your-username/asl-pipeline-inspector.git
 cd asl-pipeline-inspector
 
 # Install dependencies
-pip install numpy opencv-python scikit-image matplotlib
+pip install numpy opencv-python scikit-image matplotlib Pillow
 ```
 
 > `tkinter` ships with Python on Windows and macOS. On Linux: `sudo apt install python3-tk`
@@ -116,11 +127,19 @@ X_test_preprocessed.npy    (M, 28, 28, 1)  float32
 y_test.npy                 (M,)             int
 ```
 
-### Step 2 — Launch the Inspector GUI
+### Step 2 — Launch the Dataset Inspector
 
 ```bash
 python asl_inspector_ui.py
 ```
+
+### Step 3 — Launch the Live Camera Visualizer
+
+```bash
+python asl_live_camera.py
+```
+
+Select your camera source from the dropdown, then click **▶ Start** to begin streaming. All 10 preprocessing stages update in real time.
 
 ---
 
@@ -137,27 +156,13 @@ y_test  = np.load('y_test.npy')                # (7172,)
 
 ---
 
-## Real-Time Webcam Inference
-
-The preprocessing module includes a ready-to-use function for live webcam frames:
-
-```python
-from asl_preprocessing import preprocess_webcam_frame
-
-# frame: BGR numpy array from cv2.VideoCapture
-tensor, preview = preprocess_webcam_frame(frame)
-# tensor  → float32 (1, 28, 28, 1)  — feed directly to model.predict()
-# preview → uint8   (28, 28)         — display on screen with cv2.imshow()
-```
-
----
-
 ## Project Structure
 
 ```
 asl-pipeline-inspector/
 ├── asl_preprocessing.py      # Pipeline core + .npy export
-├── asl_inspector_ui.py       # Tkinter GUI
+├── asl_inspector_ui.py       # Dataset inspector GUI
+├── asl_live_camera.py        # Live webcam pipeline visualizer
 ├── sign_mnist_train/
 │   └── sign_mnist_train.csv
 ├── sign_mnist_test/
@@ -175,7 +180,9 @@ asl-pipeline-inspector/
 
 - The dataset covers **24 ASL letters** (J and Z are excluded as they require motion)
 - All pixel values are normalized to `[0.0, 1.0]` as `float32` for direct Keras compatibility
-- The Inspector GUI loads the first **1000 samples** for fast startup; change `max_samples` in `asl_inspector_ui.py` to load more
+- The Dataset Inspector loads the first **1000 samples** for fast startup; change `max_samples` in `asl_inspector_ui.py` to load more
+- The Live Camera runs the pipeline in a **background thread** so the UI stays responsive at all times
+- Supported camera indices: `0` built-in, `1` iPhone Continuity Camera, `2` external USB
 
 ---
 
